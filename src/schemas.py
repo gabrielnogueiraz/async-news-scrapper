@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class NewsBase(BaseModel):
@@ -12,11 +12,10 @@ class NewsCreate(NewsBase):
 
 
 class NewsResponse(NewsBase):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class ScrapeResponse(BaseModel):
