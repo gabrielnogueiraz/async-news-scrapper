@@ -34,9 +34,12 @@ venv.bak/
 
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 .tox/
 .hypothesis/
+*.cover
+.cache
 
 .vscode/
 .idea/
