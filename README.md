@@ -57,7 +57,14 @@ async-news-scrapper/
 │   └── scrapper/
 │       ├── __init__.py
 │       └── news_scrapper.py # Lógica de scraping
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py         # Configuração de fixtures
+│   ├── test_api.py         # Testes dos endpoints
+│   ├── test_scraper.py     # Testes do scraper
+│   └── test_models.py      # Testes dos models
 ├── requirements.txt        # Dependências Python
+├── pytest.ini             # Configuração do pytest
 ├── Dockerfile             # Container Docker
 ├── .env.example           # Variáveis de ambiente
 ├── .gitignore
@@ -74,12 +81,14 @@ async-news-scrapper/
 ### Instalação Local
 
 1. **Clone o repositório**
+
 ```bash
 git clone <repository-url>
 cd async-news-scrapper
 ```
 
 2. **Crie um ambiente virtual**
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
@@ -88,35 +97,70 @@ venv\Scripts\activate     # Windows
 ```
 
 3. **Instale as dependências**
+
 ```bash
 pip install -r requirements.txt
 ```
 
+> ⚠️ **Problemas na instalação?** Consulte o [TROUBLESHOOTING.md](TROUBLESHOOTING.md) para soluções de erros comuns (Rust/Cargo, ModuleNotFoundError, etc.)
+
 4. **Execute a aplicação**
+
 ```bash
 python -m src.main
 ```
 
 Ou diretamente com uvicorn:
+
 ```bash
 uvicorn src.api:app --reload --host 0.0.0.0 --port 8000
 ```
 
 A API estará disponível em: `http://localhost:8000`
 
+### Executar Testes
+
+Execute a suite completa de testes:
+
+```bash
+pytest
+```
+
+Com cobertura de código:
+
+```bash
+pytest --cov=src --cov-report=html
+```
+
+Executar testes específicos:
+
+```bash
+# Testar apenas a API
+pytest tests/test_api.py
+
+# Testar apenas o scraper
+pytest tests/test_scraper.py
+
+# Testar apenas os models
+pytest tests/test_models.py
+```
+
 ### Execução com Docker
 
 1. **Build da imagem**
+
 ```bash
 docker build -t async-news-scraper .
 ```
 
 2. **Execute o container**
+
 ```bash
 docker run -d -p 8000:8000 --name news-scraper async-news-scraper
 ```
 
 3. **Acesse a aplicação**
+
 ```
 http://localhost:8000
 ```
@@ -124,9 +168,11 @@ http://localhost:8000
 ## 📡 Endpoints da API
 
 ### `GET /`
+
 Informações básicas do serviço
 
 **Response:**
+
 ```json
 {
   "service": "Async News Scraper",
@@ -136,13 +182,16 @@ Informações básicas do serviço
 ```
 
 ### `GET /news`
+
 Retorna todas as notícias armazenadas, ordenadas por data (mais recentes primeiro)
 
 **Query Parameters:**
+
 - `limit` (int, default: 100) - Número máximo de resultados
 - `offset` (int, default: 0) - Offset para paginação
 
 **Response:**
+
 ```json
 [
   {
@@ -155,9 +204,11 @@ Retorna todas as notícias armazenadas, ordenadas por data (mais recentes primei
 ```
 
 ### `POST /scrape`
+
 Executa uma nova coleta de notícias do G1
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -167,9 +218,11 @@ Executa uma nova coleta de notícias do G1
 ```
 
 ### `GET /health`
+
 Health check do serviço
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -182,11 +235,13 @@ Health check do serviço
 ### cURL
 
 **Listar notícias:**
+
 ```bash
 curl http://localhost:8000/news
 ```
 
 **Executar scraping:**
+
 ```bash
 curl -X POST http://localhost:8000/scrape
 ```
@@ -202,7 +257,7 @@ async def main():
         # Executar scraping
         response = await client.post("http://localhost:8000/scrape")
         print(response.json())
-        
+
         # Buscar notícias
         response = await client.get("http://localhost:8000/news?limit=10")
         print(response.json())
@@ -214,13 +269,13 @@ asyncio.run(main())
 
 ```typescript
 // Executar scraping
-const scrapeResponse = await fetch('http://localhost:8000/scrape', {
-  method: 'POST'
+const scrapeResponse = await fetch("http://localhost:8000/scrape", {
+  method: "POST",
 });
 const scrapeData = await scrapeResponse.json();
 
 // Buscar notícias
-const newsResponse = await fetch('http://localhost:8000/news?limit=10');
+const newsResponse = await fetch("http://localhost:8000/news?limit=10");
 const newsData = await newsResponse.json();
 ```
 
@@ -238,18 +293,22 @@ LOG_LEVEL=info
 ## 🎯 Características Técnicas
 
 ### Performance
+
 - **100% Assíncrono**: Toda a stack utiliza async/await
 - **Scraping Concorrente**: Múltiplas requisições paralelas
 - **Connection Pooling**: Gerenciamento eficiente de conexões
 - **Retry Logic**: Resiliência a falhas de rede com backoff exponencial
 
 ### Qualidade de Código
+
 - **Type Hints**: Tipagem estática completa
 - **Clean Code**: Código autoexplicativo sem comentários desnecessários
 - **Separation of Concerns**: Camadas bem definidas (API, Service, Data)
 - **Error Handling**: Tratamento robusto de exceções
+- **Test Coverage**: Suite completa de testes unitários e de integração
 
 ### Segurança
+
 - **SQL Injection Protection**: ORM previne injeções
 - **Input Validation**: Pydantic valida todas as entradas
 - **Timeout Management**: Proteção contra requisições travadas
@@ -272,6 +331,47 @@ Acesse a documentação automática da API:
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 
+## 🧪 Testes
+
+O projeto inclui uma suite completa de testes cobrindo:
+
+### Testes de API (`test_api.py`)
+
+- ✅ Health checks e endpoints básicos
+- ✅ Listagem de notícias com paginação
+- ✅ Ordenação por data
+- ✅ Execução de scraping
+- ✅ Validação de schemas
+- ✅ Tratamento de erros
+
+### Testes de Scraper (`test_scraper.py`)
+
+- ✅ Inicialização do scraper
+- ✅ Fetch de páginas com retry
+- ✅ Parsing de HTML
+- ✅ Salvamento de notícias
+- ✅ Prevenção de duplicatas
+- ✅ Scraping completo end-to-end
+
+### Testes de Models (`test_models.py`)
+
+- ✅ Criação de registros
+- ✅ Constraints de unicidade
+- ✅ Timestamps automáticos
+- ✅ Queries e filtros
+
+**Executar todos os testes:**
+
+```bash
+pytest -v
+```
+
+**Com relatório de cobertura:**
+
+```bash
+pytest --cov=src --cov-report=term-missing
+```
+
 ## 🤝 Contribuindo
 
 Este projeto segue padrões profissionais de desenvolvimento:
@@ -281,11 +381,8 @@ Este projeto segue padrões profissionais de desenvolvimento:
 3. Siga PEP 8
 4. Mantenha a separação de camadas
 5. Escreva código autoexplicativo
+6. Todos os PRs devem incluir testes
 
 ## 📝 Licença
 
 MIT License
-
-## 👨‍💻 Autor
-
-Desenvolvido com foco em qualidade, performance e boas práticas de engenharia de software.
